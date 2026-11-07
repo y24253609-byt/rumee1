@@ -79,4 +79,61 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.85
+      padding: 0.85rem 1.1rem;
+      background-color: #f1f5f9;
+      color: var(--text-main);
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .link-item a:hover {
+      background-color: var(--primary);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .link-item a::after {
+      content: "→";
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>프로젝트 목록</h1>
+      <p class="subtitle">열람할 페이지를 선택하세요.</p>
+    </header>
+
+    <main>
+      <!-- Project 1 -->
+      <section class="section-card">
+        <h2 class="section-title">📁 Project 1</h2>
+        <ul class="link-list">
+          <li class="link-item">
+            <a href="project1/one.html">One (project1/one.html)</a>
+          </li>
+          <li class="link-item">
+            <a href="project1/two.html">Two (project1/two.html)</a>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Project 2 -->
+      <section class="section-card">
+        <h2 class="section-title">📁 Project 2</h2>
+        <ul class="link-list">
+          <li class="link-item">
+            <a href="project2/three.html">Three (project2/three.html)</a>
+          </li>
+          <li class="link-item">
+            <a href="project2/four.html">Four (project2/four.html)</a>
+          </li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
