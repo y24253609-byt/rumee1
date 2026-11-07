@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>미술사 인터랙티브 학습지 & 시뮬레이터</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Pretendard / Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Pretendard', 'sans-serif'],
+            serif: ['Noto Serif KR', 'serif'],
+          },
+          colors: {
+            renaissance: '#8B4513',
+            impressionism: '#2B6CB0',
+            cubism: '#805AD5',
+            surrealism: '#D69E2E',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Pretendard', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 9999px;
+    }
+    canvas {
+      touch-action: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+
+  <div class="max-w-5xl mx-auto space-y-8">
+    
+    <!-- 1. 헤더 섹션 -->
+    <header class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 sm:p-8 relative overflow-hidden">
+      <div class="absolute -top-12 -right-12 w-48 h-48 bg-amber-100/50 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold mb-2">
+            <i class="fa-solid fa-palette"></i> 중·고등 미술 탐구 과정
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-bold font-serif text-slate-900 tracking-tight">
+            서양 미술사 사조 탐구 & 형성평가 학습지
+          </h1>
+          <p class="text-sm sm:text-base text-slate-600 mt-1">
+            시각 시뮬레이터로 각 사조의 조형 원리를 직접 체험하고 확인 문제를 해결해 보세요.
+          </p>
+        </div>
+        <!-- 학습자 인적사항 -->
+        <div class="flex flex-wrap items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm">
+          <div class="flex items-center gap-2">
+            <label for="studentGrade" class="text-slate-500 font-medium">학년/반:</label>
+            <input type="text" id="studentGrade" placeholder="ex) 2-3" class="w-16 px-2 py-1 rounded bg-white border border-slate-300 text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+          </div>
+          <div class="flex items-center gap-2">
+            <label for="studentName" class="text-slate-500 font-medium">이름:</label>
+            <input type="text" id="studentName" placeholder="홍길동" class="w-20 px-2 py-1 rounded bg-white border border-slate-300 text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 2. 인터랙티브 미술사 시뮬레이션 섹션 -->
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 sm:p-8">
+      <div class="border-b border-slate-200 pb-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md">Section 1</span>
+          <h2 class="text-xl font-bold text-slate-900 mt-1.5 flex items-center gap-2 font-serif">
+            <i class="fa-solid fa-flask-vial text-amber-600"></i> 사조별 기법 인터랙티브 시뮬레이터
+          </h2>
+        </div>
+        <p class="text-xs text-slate-500">
+          * 사조 탭을 클릭하고 조작 슬라이더를 움직여 캔버스의 변화를 관찰해보세요.
+        </p>
+      </div>
+
+      <!-- 사조 선택 탭 -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+        <button onclick="changeMovement('renaissance')" id="tab-renaissance" class="movement-tab active px-4 py-3 rounded-xl text-sm font-semibold transition-all border flex items-center justify-center gap-2 bg-amber-900 text-white border-amber-900 shadow-sm">
+          <i class="fa-solid fa-archway"></i> 르네상스
+        </button>
+        <button onclick="changeMovement('impressionism')" id="tab-impressionism" class="movement-tab px-4 py-3 rounded-xl text-sm font-semibold transition-all border flex items-center justify-center gap-2 bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100">
+          <i class="fa-solid fa-sun"></i> 인상주의
+        </button>
+        <button onclick="changeMovement('cubism')" id="tab-cubism" class="movement-tab px-4 py-3 rounded-xl text-sm font-semibold transition-all border flex items-center justify-center gap-2 bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100">
+          <i class="fa-solid fa-shapes"></i> 입체주의
+        </button>
+        <button onclick="changeMovement('surrealism')" id="tab-surrealism" class="movement-tab px-4 py-3 rounded-xl text-sm font-semibold transition-all border flex items-center justify-center gap-2 bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100">
+          <i class="fa-solid fa-clock"></i> 초현실주의
+        </button>
+      </div>
+
+      <!-- 시뮬레이터 본체: 캔버스 + 컨트롤 패널 -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- 캔버스 영역 -->
+        <div class="lg:col-span-7 bg-slate-900 rounded-xl overflow-hidden shadow-inner border border-slate-800 relative flex flex-col items-center justify-center">
+          <div class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-full text-xs text-white border border-slate-700 z-10 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="canvasBadge">르네상스: 1점 원근법 & 스푸마토</span>
+          </div>
+          <canvas id="artCanvas" width="560" height="380" class="w-full h-auto max-h-[380px] bg-slate-950 cursor-crosshair"></canvas>
+          <div class="w-full bg-slate-900 text-slate-400 px-4 py-2 text-xs flex justify-between border-t border-slate-800">
+            <span><i class="fa-regular fa-hand-pointer mr-1"></i>캔버스 위에서 마우스를 움직여 투시선/빛의 각도를 조정해보세요.</span>
+            <span id="canvasStats" class="font-mono text-slate-300">X: 0, Y: 0</span>
+          </div>
+        </div>
+
+        <!-- 컨트롤 & 개념 패널 -->
+        <div class="lg:col-span-5 space-y-4">
+          
+          <!-- 슬라이더 및 옵션 컨트롤 카드 -->
+          <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 space-y-4">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-amber-700"></i> 기법 파라미터 조절
+            </h3>
+
+            <!-- 르네상스 컨트롤 -->
+            <div id="ctrl-renaissance" class="space-y-3">
+              <div>
+                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                  <span>투시선(원근 가이드) 투명도</span>
+                  <span id="val-perspective" class="font-bold text-amber-800">80%</span>
+                </div>
+                <input type="range" id="param-perspective" min="0" max="100" value="80" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-800">
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                  <span>스푸마토 (공기원근 / 윤곽선 흐림)</span>
+                  <span id="val-sfumato" class="font-bold text-amber-800">40%</span>
+                </div>
+                <input type="range" id="param-sfumato" min="0" max="100" value="40" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-800">
+              </div>
+              <div class="pt-1">
+                <label class="inline-flex items-center text-xs font-medium text-slate-700 cursor-pointer">
+                  <input type="checkbox" id="check-vanishing" checked class="rounded border-slate-300 text-amber-800 focus:ring-amber-800 mr-2">
+                  소실점(Vanishing Point) 표시
+                </label>
+              </div>
+            </div>
+
+            <!-- 인상주의 컨트롤 -->
+            <div id="ctrl-impressionism" class="space-y-3 hidden">
+              <div>
+                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                  <span>태양광 시간대 (빛의 색변화)</span>
+                  <span id="val-time" class="font-bold text-blue-700">오후 2시 (한낮)</span>
+                </div>
+                <input type="range" id="param-time" min="0" max="100" value="50" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                  <span>색채 분할 붓터치 밀도 (순수색 병치)</span>
+                  <span id="val-brush" class="font-bold text-blue-700">중간</span>
+                </div>
+                <input type="range" id="param-brush" min="10" max="100" value="50" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+              </div>
+            </div>
+
+            <!-- 입체주의 컨트롤 -->
+            <div id="ctrl-cubism" class="space-y-3 hidden">
+              <div>
+                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                  <span>다면적 시점 분할 (기하학적 파편화)</span>
+                  <span id="val-facet" class="font-bold text-purple-700">레벨 4</span>
+                </div>
+                <input type="range" id="param-facet" min="1" max="8" value="4" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600">
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                  <span>색채의 단순화 (단색조/콜라주 효과)</span>
+                  <span id="val-monochrome" class="font-bold text-purple-700">보통</span>
+                </div>
+                <input type="range" id="param-monochrome" min="0" max="100" value="60" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600">
+              </div>
+            </div>
+
+            <!-- 초현실주의 컨트롤 -->
+            <div id="ctrl-surrealism" class="space-y-3 hidden">
+              <div>
+                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                  <span>형태 왜곡 정도 (녹아내리는 시공간)</span>
+                  <span id="val-distortion" class="font-bold text-yellow-700">65%</span>
+                </div>
+                <input type="range" id="param-distortion" min="0" max="100" value="65" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-yellow-600">
+              </div>
+              <div>
+                <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                  <span>데페이즈망 (비현실적 오브제 침투)</span>
+                  <span id="val-dream" class="font-bold text-yellow-700">활성</span>
+                </div>
+                <input type="range" id="param-dream" min="0" max="100" value="80" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-yellow-600">
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 사조 핵심 요약 정보 박스 -->
+          <div id="conceptCard" class="bg-amber-50/60 rounded-xl p-5 border border-amber-200/80 text-sm">
+            <h4 id="conceptTitle" class="font-bold text-amber-900 mb-1 font-serif text-base">
+              르네상스 (Renaissance, 14~16세기)
+            </h4>
+            <p id="conceptDesc" class="text-slate-700 text-xs leading-relaxed mb-3">
+              인간 중심적 사고와 과학적 관찰을 바탕으로 수학적 1점 선원근법과 인체 해부학, 명암법(치아로스쿠로), 스푸마토 기법을 통해 3차원 공간을 평면에 완벽히 재현했습니다.
+            </p>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div class="bg-white/80 p-2 rounded border border-amber-200/50">
+                <span class="text-slate-500 block text-[11px]">핵심 기법</span>
+                <span id="conceptTechnique" class="font-semibold text-slate-800">선원근법, 스푸마토, 명암법</span>
+              </div>
+              <div class="bg-white/80 p-2 rounded border border-amber-200/50">
+                <span class="text-slate-500 block text-[11px]">대표 작가</span>
+                <span id="conceptArtists" class="font-semibold text-slate-800">다빈치, 미켈란젤로, 라파엘로</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 3. 확인 평가 문제 풀이 섹션 -->
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 sm:p-8">
+      <div class="border-b border-slate-200 pb-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">Section 2</span>
+          <h2 class="text-xl font-bold text-slate-900 mt-1.5 flex items-center gap-2 font-serif">
+            <i class="fa-solid fa-pen-to-square text-indigo-600"></i> 미술사 형성평가 문제지
+          </h2>
+        </div>
+        <div class="text-xs text-slate-500 flex items-center gap-3">
+          <span>총 6문항 (총 100점)</span>
+          <span class="inline-block w-1.5 h-1.5 bg-slate-300 rounded-full"></span>
+          <span>객관식(단일/다중) & 주관식</span>
+        </div>
+      </div>
+
+      <form id="quizForm" onsubmit="event.preventDefault(); submitQuiz();" class="space-y-8">
+        
+        <!-- [문제 1] 객관식 (답이 1개) -->
+        <div class="quiz-item p-5 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors bg-white" id="item-q1">
+          <div class="flex items-start justify-between gap-4 mb-3">
+            <h3 class="font-bold text-slate-900 text-base leading-snug">
+              <span class="text-indigo-600 mr-1.5">Q1.</span> 
+              다음 중 르네상스 미술에서 3차원의 깊이감 있는 입체적 공간을 2차원 평면에 수학적·체계적으로 구현하기 위해 도입된 핵심 조형 원리는?
+            </h3>
+            <span class="shrink-0 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              15점
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mb-4">* 정답 하나를 선택하세요 (단일 선택)</p>
+          
+          <div class="space-y-2.5">
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="radio" name="q1" value="A" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">① 다시점 분할법 (Multiple Perspective)</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="radio" name="q1" value="B" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">② 선원근법 (Linear Perspective / 1점 투시법)</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="radio" name="q1" value="C" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">③ 프로타주 (Frottage) 기법</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="radio" name="q1" value="D" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">④ 야수파식 강렬한 원색 대비</span>
+            </label>
+          </div>
+
+          <!-- 피드백 박스 -->
+          <div class="feedback-box hidden mt-4 p-4 rounded-lg text-xs leading-relaxed"></div>
+        </div>
+
+        <!-- [문제 2] 객관식 (답이 1개) -->
+        <div class="quiz-item p-5 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors bg-white" id="item-q2">
+          <div class="flex items-start justify-between gap-4 mb-3">
+            <h3 class="font-bold text-slate-900 text-base leading-snug">
+              <span class="text-indigo-600 mr-1.5">Q2.</span> 
+              인상주의(Impressionism) 화가들이 아틀리에를 벗어나 야외에서 그림을 그리며 가장 집중하여 포착하고자 했던 것은?
+            </h3>
+            <span class="shrink-0 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              15점
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mb-4">* 정답 하나를 선택하세요 (단일 선택)</p>
+          
+          <div class="space-y-2.5">
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="radio" name="q2" value="A" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">① 엄격한 형태의 윤곽선과 이상화된 신화적 비례</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="radio" name="q2" value="B" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">② 무의식과 꿈의 세계에서 나타나는 환상적 이미지</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="radio" name="q2" value="C" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">③ 시간과 날씨의 변화에 따라 시시각각 변하는 ‘빛과 색채’의 순간</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="radio" name="q2" value="D" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">④ 대상의 본질적 기하학 구조인 구·원뿔·원기둥 형태의 환원</span>
+            </label>
+          </div>
+
+          <div class="feedback-box hidden mt-4 p-4 rounded-lg text-xs leading-relaxed"></div>
+        </div>
+
+        <!-- [문제 3] 객관식 (답이 2개 이상) -->
+        <div class="quiz-item p-5 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors bg-white" id="item-q3">
+          <div class="flex items-start justify-between gap-4 mb-3">
+            <h3 class="font-bold text-slate-900 text-base leading-snug">
+              <span class="text-indigo-600 mr-1.5">Q3.</span> 
+              입체주의(Cubism)의 특징 및 회화적 혁신에 대한 설명으로 <span class="text-indigo-600 underline decoration-indigo-300 underline-offset-4">옳은 것을 모두</span> 고르시오.
+            </h3>
+            <span class="shrink-0 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              20점
+            </span>
+          </div>
+          <p class="text-xs text-amber-600 font-semibold mb-4 flex items-center gap-1">
+            <i class="fa-solid fa-circle-check"></i> 정답이 2개 이상인 다중 선택 문항입니다. (부분 점수 있음)
+          </p>
+          
+          <div class="space-y-2.5">
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="checkbox" name="q3" value="A" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">A. 르네상스 이후 지속된 단일 시점(1점 원근법)의 규범을 파괴하였다.</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="checkbox" name="q3" value="B" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">B. 대상을 여러 각도에서 관찰한 후 해체하여 한 평면 위에 재구성하였다.</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="checkbox" name="q3" value="C" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">C. 빛의 반사에 따른 순간적인 시각적 인상만을 재현하는 데 치중하였다.</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="checkbox" name="q3" value="D" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">D. 대표 화가로 파블로 피카소(Pablo Picasso)와 조르주 브라크(Georges Braque)가 있다.</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="checkbox" name="q3" value="E" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">E. 자연물을 실물과 완벽하게 똑같이 보이도록 극사실적으로 정밀 묘사하였다.</span>
+            </label>
+          </div>
+
+          <div class="feedback-box hidden mt-4 p-4 rounded-lg text-xs leading-relaxed"></div>
+        </div>
+
+        <!-- [문제 4] 객관식 (답이 2개 이상) -->
+        <div class="quiz-item p-5 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors bg-white" id="item-q4">
+          <div class="flex items-start justify-between gap-4 mb-3">
+            <h3 class="font-bold text-slate-900 text-base leading-snug">
+              <span class="text-indigo-600 mr-1.5">Q4.</span> 
+              초현실주의(Surrealism) 미술가들이 이성의 통제를 벗어나 ‘무의식’과 ‘꿈’의 세계를 표출하기 위해 주로 사용한 창작 기법들을 <span class="text-indigo-600 underline decoration-indigo-300 underline-offset-4">모두</span> 고르시오.
+            </h3>
+            <span class="shrink-0 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              20점
+            </span>
+          </div>
+          <p class="text-xs text-amber-600 font-semibold mb-4 flex items-center gap-1">
+            <i class="fa-solid fa-circle-check"></i> 정답이 2개 이상인 다중 선택 문항입니다. (부분 점수 있음)
+          </p>
+          
+          <div class="space-y-2.5">
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="checkbox" name="q4" value="A" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">A. 자동기술법 (오토마티슴, Automatismus)</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="checkbox" name="q4" value="B" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">B. 데페이즈망 (Dépaysement / 전치 기법)</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="checkbox" name="q4" value="C" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">C. 프로타주 (Frottage) 및 데칼코마니 (Décalcomanie)</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <input type="checkbox" name="q4" value="D" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+              <span class="text-sm text-slate-800">D. 수학적 격자 좌표에 맞춘 엄격한 기하학적 투시도법</span>
+            </label>
+          </div>
+
+          <div class="feedback-box hidden mt-4 p-4 rounded-lg text-xs leading-relaxed"></div>
+        </div>
+
+        <!-- [문제 5] 주관식 단답/서술형 -->
+        <div class="quiz-item p-5 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors bg-white" id="item-q5">
+          <div class="flex items-start justify-between gap-4 mb-3">
+            <h3 class="font-bold text-slate-900 text-base leading-snug">
+              <span class="text-indigo-600 mr-1.5">Q5.</span> 
+              [주관식 단답형] 레오나르도 다빈치의 &lt;모나리자&gt;에서 인물의 입가와 눈가 윤곽선을 안개처럼 부드럽고 흐릿하게 처리하여 자연스러운 음영과 신비로운 분위기를 연출한 기법의 명칭을 쓰시오.
+            </h3>
+            <span class="shrink-0 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              15점
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">* 한글 또는 영문으로 입력하세요 (예: 〇〇〇〇 기법)</p>
+          
+          <div class="relative max-w-md">
+            <input type="text" id="q5-input" placeholder="정답을 입력하세요" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+
+          <div class="feedback-box hidden mt-4 p-4 rounded-lg text-xs leading-relaxed"></div>
+        </div>
+
+        <!-- [문제 6] 주관식 단답/서술형 -->
+        <div class="quiz-item p-5 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors bg-white" id="item-q6">
+          <div class="flex items-start justify-between gap-4 mb-3">
+            <h3 class="font-bold text-slate-900 text-base leading-snug">
+              <span class="text-indigo-600 mr-1.5">Q6.</span> 
+              [주관식 서술형/개념어] 르네 마그리트의 작품처럼 어떤 사물을 본래 있어야 할 일상적인 맥락이나 장소에서 떼어내어 전혀 엉뚱하고 낯선 환경에 배치함으로써 관람자에게 심리적 충격과 낯선 시각을 불러일으키는 초현실주의적 표현 기법은 무엇인가요?
+            </h3>
+            <span class="shrink-0 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              15점
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">* 외래어 표기 또는 한글 번역 명칭(전치기법 등)을 입력하세요</p>
+          
+          <div class="relative max-w-md">
+            <input type="text" id="q6-input" placeholder="정답을 입력하세요" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+          </div>
+
+          <div class="feedback-box hidden mt-4 p-4 rounded-lg text-xs leading-relaxed"></div>
+        </div>
+
+        <!-- 제출 버튼 영역 -->
+        <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200">
+          <div class="text-xs text-slate-500 flex items-center gap-2">
+            <i class="fa-solid fa-cloud-arrow-up text-indigo-500"></i>
+            <span>답안 제출 시 채점 결과와 응답 내용이 Firebase 데이터베이스에 자동 전송됩니다.</span>
+          </div>
+          
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <button type="button" onclick="resetQuiz()" class="w-1/2 sm:w-auto px-5 py-3 rounded-xl border border-slate-300 text-slate-700 font-medium text-sm hover:bg-slate-100 transition-colors">
+              <i class="fa-solid fa-rotate-left mr-1.5"></i> 초기화
+            </button>
+            <button type="submit" id="submitBtn" class="w-1/2 sm:w-auto px-7 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
+              <i class="fa-solid fa-paper-plane" id="submitBtnIcon"></i>
+              <span id="submitBtnText">답안 제출 및 채점하기</span>
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </section>
+
+    <!-- 채점 결과 모달 / 알림 팝업 -->
+    <div id="resultModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative animate-fade-in max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-100">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <div class="text-center">
+          <div id="resultIcon" class="w-16 h-16 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl mb-4">
+            <i class="fa-solid fa-award"></i>
+          </div>
+          <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600" id="resultStudent">
+            학습자: 홍길동
+          </span>
+          <h3 class="text-2xl font-bold font-serif text-slate-900 mt-2" id="resultScoreText">
+            최종 점수: 85점 / 100점
+          </h3>
+          <p class="text-sm text-slate-600 mt-2" id="resultComment">
+            탁월한 성취도입니다! 미술사의 다양한 양식을 정확히 이해하고 있습니다.
+          </p>
+
+          <!-- Firebase 전송 상태 뱃지 -->
+          <div id="firebaseStatusBanner" class="mt-4 p-3 rounded-xl text-xs flex items-center justify-center gap-2 border bg-slate-50 border-slate-200 text-slate-700">
+            <i class="fa-solid fa-database text-indigo-500"></i>
+            <span id="firebaseStatusText">데이터베이스 연동 준비 완료</span>
+          </div>
+        </div>
+
+        <div class="mt-6 border-t border-slate-100 pt-4 space-y-2 text-xs">
+          <div class="flex justify-between py-1 border-b border-slate-50">
+            <span class="text-slate-500">Q1. 르네상스 선원근법 (15점)</span>
+            <span id="score-q1" class="font-bold">15점</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-slate-50">
+            <span class="text-slate-500">Q2. 인상주의 빛과 색채 (15점)</span>
+            <span id="score-q2" class="font-bold">15점</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-slate-50">
+            <span class="text-slate-500">Q3. 입체주의 다중시점 (20점)</span>
+            <span id="score-q3" class="font-bold">20점</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-slate-50">
+            <span class="text-slate-500">Q4. 초현실주의 창작기법 (20점)</span>
+            <span id="score-q4" class="font-bold">20점</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-slate-50">
+            <span class="text-slate-500">Q5. 스푸마토 기법 (15점)</span>
+            <span id="score-q5" class="font-bold">15점</span>
+          </div>
+          <div class="flex justify-between py-1">
+            <span class="text-slate-500">Q6. 데페이즈망 (15점)</span>
+            <span id="score-q6" class="font-bold">15점</span>
+          </div>
+        </div>
+
+        <div class="mt-6 flex gap-3">
+          <button onclick="closeModal()" class="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm transition-colors">
+            문제별 해설 및 정답 확인하기
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Javascript 로직 & Firebase Module 연동 -->
+  <script type="module">
+    // ==========================================
+    // Firebase SDK v11 모듈 Import & 초기화
+    // ==========================================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAOuC5WDt3OoTaxCo7DtFTvFgaTEuS6_Ik",
+      authDomain: "firexercise-1107.firebaseapp.com",
+      projectId: "firexercise-1107",
+      storageBucket: "firexercise-1107.firebasestorage.app",
+      messagingSenderId: "438138054858",
+      appId: "1:438138054858:web:8bac172a94e439058b6c33",
+      measurementId: "G-7V72B7N044"
+    };
+
+    // Firebase 및 Firestore 초기화
+    let db = null;
+    let auth = null;
+    try {
+      const app = initializeApp(firebaseConfig);
+      try { getAnalytics(app); } catch (e) { /* Analytics 선택적 동작 */ }
+      db = getFirestore(app);
+      auth = getAuth(app);
+      // 익명 로그인 시도 (Firebase Rules에서 auth != null 검증을 만족시키기 위함)
+      signInAnonymously(auth).catch((err) => {
+        // 익명 인증이 활성화되지 않은 프로젝트일 경우 무시하고 진행
+        console.warn("익명 인증 미사용/비활성화:", err.message);
+      });
+      console.log("Firebase App & Firestore 초기화 완료");
+    } catch (err) {
+      console.error("Firebase 초기화 에러:", err);
+    }
+
+    // ==========================================
+    // 1. 미술사 시뮬레이터 인터랙션 스크립트
+    // ==========================================
+    const canvas = document.getElementById('artCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let currentMovement = 'renaissance';
+    let mouseX = canvas.width / 2;
+    let mouseY = canvas.height / 2;
+
+    // 사조별 정보 데이터
+    const movementData = {
+      renaissance: {
+        title: "르네상스 (Renaissance, 14~16세기)",
+        desc: "인간 중심적 사고와 과학적 관찰을 바탕으로 수학적 1점 선원근법과 인체 해부학, 명암법(치아로스쿠로), 스푸마토 기법을 통해 3차원 공간을 평면에 완벽히 재현했습니다.",
+        technique: "선원근법, 스푸마토, 명암법",
+        artists: "다빈치, 미켈란젤로, 라파엘로",
+        badge: "르네상스: 1점 원근법 & 스푸마토",
+        colorClass: "bg-amber-900 border-amber-900"
+      },
+      impressionism: {
+        title: "인상주의 (Impressionism, 19세기 후반)",
+        desc: "산업혁명과 튜브 물감의 발명으로 화가들이 야외로 나가 시시각각 변화하는 자연의 ‘빛’과 ‘대기의 인상’을 짧은 붓터치와 순수색의 병치 혼합으로 화폭에 담았습니다.",
+        technique: "필치 분할법, 외광 회화, 순수색 병치",
+        artists: "모네, 르누아르, 드가, 피사로",
+        badge: "인상주의: 빛의 시간대 & 색채 분할 붓터치",
+        colorClass: "bg-blue-700 border-blue-700"
+      },
+      cubism: {
+        title: "입체주의 (Cubism, 20세기 초)",
+        desc: "세잔의 기하학적 형태론과 아프리카 원시 조각의 영향을 받아, 대상을 여러 시점에서 동시 관찰한 뒤 기하학적인 다면체로 분해하고 한 평면 위에 재구성했습니다.",
+        technique: "다시점 분석, 콜라주, 기하학적 파편화",
+        artists: "피카소, 브라크, 레제",
+        badge: "입체주의: 다면적 시점 분할 & 기하학적 파편화",
+        colorClass: "bg-purple-700 border-purple-700"
+      },
+      surrealism: {
+        title: "초현실주의 (Surrealism, 1920년대~)",
+        desc: "프로이트의 정신분석학의 영향으로 이성의 통제에서 벗어난 꿈, 무의식, 환상의 세계를 탐구하였으며, 일상적인 사물의 낯선 배치(데페이즈망)와 자동기술법을 사용했습니다.",
+        technique: "데페이즈망, 오토마티슴, 프로타주",
+        artists: "달리, 마그리트, 에른스트, 미로",
+        badge: "초현실주의: 형태 왜곡 & 데페이즈망",
+        colorClass: "bg-yellow-700 border-yellow-700"
+      }
+    };
+
+    // 캔버스 마우스 좌표 추적
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      mouseX = (e.clientX - rect.left) * scaleX;
+      mouseY = (e.clientY - rect.top) * scaleY;
+      document.getElementById('canvasStats').textContent = `X: ${Math.round(mouseX)}, Y: ${Math.round(mouseY)}`;
+      drawCanvas();
+    });
+
+    // 사조 변경 함수
+    function changeMovement(movement) {
+      currentMovement = movement;
+
+      // 탭 스타일 갱신
+      document.querySelectorAll('.movement-tab').forEach(tab => {
+        tab.className = 'movement-tab px-4 py-3 rounded-xl text-sm font-semibold transition-all border flex items-center justify-center gap-2 bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100';
+      });
+
+      const activeTab = document.getElementById(`tab-${movement}`);
+      const info = movementData[movement];
+      activeTab.className = `movement-tab active px-4 py-3 rounded-xl text-sm font-semibold transition-all border flex items-center justify-center gap-2 text-white ${info.colorClass} shadow-sm`;
+
+      // 컨트롤 패널 가시성 조절
+      ['renaissance', 'impressionism', 'cubism', 'surrealism'].forEach(m => {
+        document.getElementById(`ctrl-${m}`).classList.toggle('hidden', m !== movement);
+      });
+
+      // 개념 카드 갱신
+      document.getElementById('conceptTitle').textContent = info.title;
+      document.getElementById('conceptDesc').textContent = info.desc;
+      document.getElementById('conceptTechnique').textContent = info.technique;
+      document.getElementById('conceptArtists').textContent = info.artists;
+      document.getElementById('canvasBadge').textContent = info.badge;
+
+      drawCanvas();
+    }
+
+    // 슬라이더 이벤트 바인딩
+    document.getElementById('param-perspective').addEventListener('input', (e) => {
+      document.getElementById('val-perspective').textContent = `${e.target.value}%`;
+      drawCanvas();
+    });
+    document.getElementById('param-sfumato').addEventListener('input', (e) => {
+      document.getElementById('val-sfumato').textContent = `${e.target.value}%`;
+      drawCanvas();
+    });
+    document.getElementById('check-vanishing').addEventListener('change', drawCanvas);
+
+    document.getElementById('param-time').addEventListener('input', (e) => {
+      const val = parseInt(e.target.value);
+      let text = "오후 2시 (한낮)";
+      if (val < 30) text = "오전 7시 (새벽/아침)";
+      else if (val > 70) text = "오후 6시 (황혼/노을)";
+      document.getElementById('val-time').textContent = text;
+      drawCanvas();
+    });
+    document.getElementById('param-brush').addEventListener('input', (e) => {
+      const val = parseInt(e.target.value);
+      document.getElementById('val-brush').textContent = val > 70 ? '조밀한 터치' : val < 35 ? '거친 분할 터치' : '중간';
+      drawCanvas();
+    });
+
+    document.getElementById('param-facet').addEventListener('input', (e) => {
+      document.getElementById('val-facet').textContent = `레벨 ${e.target.value}`;
+      drawCanvas();
+    });
+    document.getElementById('param-monochrome').addEventListener('input', drawCanvas);
+
+    document.getElementById('param-distortion').addEventListener('input', (e) => {
+      document.getElementById('val-distortion').textContent = `${e.target.value}%`;
+      drawCanvas();
+    });
+    document.getElementById('param-dream').addEventListener('input', drawCanvas);
+
+    // ==========================================
+    // 캔버스 렌더링 엔진
+    // ==========================================
+    function drawCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (currentMovement === 'renaissance') {
+        drawRenaissance();
+      } else if (currentMovement === 'impressionism') {
+        drawImpressionism();
+      } else if (currentMovement === 'cubism') {
+        drawCubism();
+      } else if (currentMovement === 'surrealism') {
+        drawSurrealism();
+      }
+    }
+
+    // 1) 르네상스 드로잉 (1점 투시 공간 + 아치 회랑)
+    function drawRenaissance() {
+      const vpX = mouseX;
+      const vpY = Math.max(80, Math.min(canvas.height - 80, mouseY));
+      const guideAlpha = document.getElementById('param-perspective').value / 100;
+      const sfumatoVal = document.getElementById('param-sfumato').value / 10;
+      const showVP = document.getElementById('check-vanishing').checked;
+
+      // 배경 벽 및 바닥 원근
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#2b211a');
+      gradient.addColorStop(0.5, '#4a382c');
+      gradient.addColorStop(1, '#1f1610');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 바닥 타일 투시선 (체커보드 원근법)
+      ctx.fillStyle = '#6e5441';
+      ctx.beginPath();
+      ctx.moveTo(0, canvas.height);
+      ctx.lineTo(canvas.width, canvas.height);
+      ctx.lineTo(vpX + 120, vpY + 50);
+      ctx.lineTo(vpX - 120, vpY + 50);
+      ctx.closePath();
+      ctx.fill();
+
+      // 바닥 타일 가로선들
+      for (let y = canvas.height; y > vpY + 50; y -= (y - vpY) * 0.18 + 4) {
+        ctx.strokeStyle = `rgba(30, 20, 10, 0.4)`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      // 아치 기둥 렌더링 (원근 감소)
+      const pillars = [0.1, 0.35, 0.65, 0.9];
+      pillars.forEach(p => {
+        const xLeft = p * (vpX - 0);
+        const xRight = canvas.width - p * (canvas.width - vpX);
+        const topY = p * vpY;
+        const bottomY = canvas.height - p * (canvas.height - (vpY + 50));
+        const colW = (1 - p) * 36;
+
+        // 좌우 기둥
+        ctx.fillStyle = `rgba(180, 150, 125, ${1 - p * 0.5})`;
+        ctx.fillRect(xLeft, topY, colW, bottomY - topY);
+        ctx.fillRect(xRight - colW, topY, colW, bottomY - topY);
+
+        // 아치형 천장 선
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(130, 100, 80, ${0.8 - p * 0.5})`;
+        ctx.lineWidth = (1 - p) * 6;
+        ctx.arc((xLeft + xRight) / 2, topY, (xRight - xLeft) / 2, Math.PI, 0, false);
+        ctx.stroke();
+      });
+
+      // 중앙 인물/오브제 (스푸마토 효과 적용)
+      ctx.save();
+      if (sfumatoVal > 0) {
+        ctx.filter = `blur(${sfumatoVal}px)`;
+      }
+      // 중앙 석상/피에타 실루엣
+      ctx.fillStyle = '#dcd2c4';
+      ctx.beginPath();
+      ctx.arc(vpX, vpY + 40, 28, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(vpX - 45, vpY + 130);
+      ctx.lineTo(vpX + 45, vpY + 130);
+      ctx.lineTo(vpX + 25, vpY + 55);
+      ctx.lineTo(vpX - 25, vpY + 55);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      // 투시선 가이드 (붉은색/노란색 보조선)
+      if (guideAlpha > 0) {
+        ctx.save();
+        ctx.strokeStyle = `rgba(239, 68, 68, ${guideAlpha})`;
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([6, 4]);
+
+        const corners = [
+          [0, 0], [canvas.width, 0], 
+          [0, canvas.height], [canvas.width, canvas.height],
+          [0, canvas.height * 0.5], [canvas.width, canvas.height * 0.5]
+        ];
+
+        corners.forEach(([cx, cy]) => {
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(vpX, vpY);
+          ctx.stroke();
+        });
+
+        // 소실점 마커
+        if (showVP) {
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#ef4444';
+          ctx.beginPath();
+          ctx.arc(vpX, vpY, 6, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 11px Pretendard';
+          ctx.fillText('소실점 (Vanishing Point)', vpX + 10, vpY - 8);
+        }
+        ctx.restore();
+      }
+    }
+
+    // 2) 인상주의 드로잉 (수련 연못 / 빛과 붓터치)
+    function drawImpressionism() {
+      const timeVal = parseInt(document.getElementById('param-time').value); // 0~100
+      const brushStep = 110 - parseInt(document.getElementById('param-brush').value); // 간격
+
+      // 시간대에 따른 기본 팔레트
+      let skyTop, skyBottom, pondColor, lightColor;
+      if (timeVal < 40) { // 아침
+        skyTop = '#e0f2fe';
+        skyBottom = '#fed7aa';
+        pondColor = [56, 120, 150];
+        lightColor = 'rgba(254, 240, 138, 0.35)';
+      } else if (timeVal > 65) { // 노을
+        skyTop = '#7c2d12';
+        skyBottom = '#fb923c';
+        pondColor = [120, 50, 70];
+        lightColor = 'rgba(251, 146, 60, 0.45)';
+      } else { // 한낮
+        skyTop = '#38bdf8';
+        skyBottom = '#bae6fd';
+        pondColor = [30, 95, 110];
+        lightColor = 'rgba(255, 255, 255, 0.4)';
+      }
+
+      // 하늘 배경
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height * 0.4);
+      skyGrad.addColorStop(0, skyTop);
+      skyGrad.addColorStop(1, skyBottom);
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height * 0.4);
+
+      // 연못 배경
+      const waterGrad = ctx.createLinearGradient(0, canvas.height * 0.4, 0, canvas.height);
+      waterGrad.addColorStop(0, `rgb(${pondColor[0]}, ${pondColor[1]}, ${pondColor[2]})`);
+      waterGrad.addColorStop(1, `rgb(${pondColor[0]*0.5}, ${pondColor[1]*0.6}, ${pondColor[2]*0.7})`);
+      ctx.fillStyle = waterGrad;
+      ctx.fillRect(0, canvas.height * 0.4, canvas.width, canvas.height * 0.6);
+
+      // 인상파 특유의 분할 붓터치 (작은 선형 브러시 다수 생성)
+      const seedColors = [
+        `rgba(59, 130, 246, 0.8)`,   // 파랑
+        `rgba(34, 197, 94, 0.75)`,   // 초록
+        `rgba(234, 179, 8, 0.85)`,   // 노랑
+        `rgba(239, 68, 68, 0.7)`,    // 빨강
+        `rgba(244, 114, 182, 0.8)`,  // 분홍
+        `rgba(255, 255, 255, 0.9)`   // 백색 하이라이트
+      ];
+
+      // 연못 위 수련 잎 & 수면 반사 붓터치
+      for (let y = canvas.height * 0.42; y < canvas.height; y += brushStep * 0.4) {
+        for (let x = 10; x < canvas.width; x += brushStep * 0.7) {
+          const cIndex = (Math.floor(x + y * 3)) % seedColors.length;
+          ctx.strokeStyle = seedColors[cIndex];
+          ctx.lineWidth = Math.max(2, (y / canvas.height) * 5);
+          ctx.lineCap = 'round';
+
+          // 붓터치 궤적 (가로 터치 중심)
+          ctx.beginPath();
+          const len = 12 + ((y / canvas.height) * 16);
+          ctx.moveTo(x - len / 2, y);
+          ctx.lineTo(x + len / 2, y + (Math.sin(x) * 2));
+          ctx.stroke();
+        }
+      }
+
+      // 마우스 위치에 따른 햇빛 산란 효과
+      const sunGrad = ctx.createRadialGradient(mouseX, mouseY, 10, mouseX, mouseY, 180);
+      sunGrad.addColorStop(0, lightColor);
+      sunGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = sunGrad;
+      ctx.beginPath();
+      ctx.arc(mouseX, mouseY, 180, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 수련 꽃 덩어리 렌더링
+      const lilies = [
+        { x: 120, y: 260, r: 24 },
+        { x: 380, y: 310, r: 35 },
+        { x: 260, y: 220, r: 18 },
+        { x: 470, y: 240, r: 22 }
+      ];
+
+      lilies.forEach(l => {
+        // 수련 잎
+        ctx.fillStyle = 'rgba(22, 101, 52, 0.85)';
+        ctx.beginPath();
+        ctx.ellipse(l.x, l.y, l.r * 1.5, l.r * 0.7, 0, 0, Math.PI * 1.8);
+        ctx.lineTo(l.x, l.y);
+        ctx.fill();
+
+        // 수련 꽃봉오리 (순수색 병치)
+        ctx.fillStyle = 'rgba(253, 224, 71, 0.95)';
+        ctx.beginPath();
+        ctx.arc(l.x + 4, l.y - 4, l.r * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = 'rgba(244, 63, 94, 0.9)';
+        ctx.beginPath();
+        ctx.arc(l.x - 2, l.y - 5, l.r * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // 3) 입체주의 드로잉 (다면체 정물 분해 및 콜라주 룩)
+    function drawCubism() {
+      const facetCount = parseInt(document.getElementById('param-facet').value); // 1~8
+      const monochrome = parseInt(document.getElementById('param-monochrome').value) / 100;
+
+      // 단색조 큐비즘 팔레트 vs 유채색
+      const palette = [
+        `#c49a6c`, `#8c6239`, `#594129`, `#362b28`,
+        `#d8cfc4`, `#827b75`, `#403b39`, `#a39171`
+      ];
+
+      // 배경 다각 평면
+      ctx.fillStyle = '#e8dec8';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 다각 면 분할 격자
+      const cols = 4 + facetCount;
+      const rows = 3 + Math.floor(facetCount * 0.8);
+      const w = canvas.width / cols;
+      const h = canvas.height / rows;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = c * w;
+          const y = r * h;
+          const colorIdx = (c * 3 + r * 5) % palette.length;
+
+          ctx.save();
+          ctx.fillStyle = palette[colorIdx];
+          ctx.strokeStyle = '#222';
+          ctx.lineWidth = 1.2;
+
+          // 다각형 면 비틀기
+          ctx.beginPath();
+          const offsetX = Math.sin(c + r) * 12;
+          const offsetY = Math.cos(c * r) * 12;
+          ctx.moveTo(x + offsetX, y);
+          ctx.lineTo(x + w, y + offsetY);
+          ctx.lineTo(x + w + offsetX, y + h);
+          ctx.lineTo(x, y + h + offsetY);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      // 중앙의 기타/바이올린/정물 해체 구조
+      const cx = canvas.width * 0.5 + (mouseX - canvas.width / 2) * 0.15;
+      const cy = canvas.height * 0.5 + (mouseY - canvas.height / 2) * 0.15;
+
+      // 악기 파편 1: 바이올린 울림통 단면
+      ctx.fillStyle = '#654321';
+      ctx.strokeStyle = '#1a110a';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.ellipse(cx - 30, cy, 60, 100, Math.PI / 6, 0, Math.PI * 1.5);
+      ctx.fill();
+      ctx.stroke();
+
+      // 파편 2: F홀 기하학적 형태
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(cx - 40, cy - 40);
+      ctx.bezierCurveTo(cx - 50, cy - 20, cx - 20, cy, cx - 35, cy + 30);
+      ctx.stroke();
+
+      // 파편 3: 기타 줄 (다면적 시점)
+      ctx.strokeStyle = '#2c2c2c';
+      ctx.lineWidth = 1.5;
+      for (let i = -15; i <= 15; i += 6) {
+        ctx.beginPath();
+        ctx.moveTo(cx + 20 + i, cy - 110);
+        ctx.lineTo(cx + i * 2, cy + 120);
+        ctx.stroke();
+      }
+
+      // 파편 4: 악기 목(Neck) 및 조율기 조각
+      ctx.fillStyle = '#d4b483';
+      ctx.fillRect(cx - 15, cy - 140, 30, 80);
+      ctx.strokeRect(cx - 15, cy - 140, 30, 80);
+
+      // 신문 인쇄 활자 효과 (콜라주 오마주)
+      ctx.fillStyle = '#111';
+      ctx.font = 'bold 13px serif';
+      ctx.fillText('LE JOURNAL', cx + 45, cy - 20);
+      ctx.font = '9px monospace';
+      ctx.fillText('CUBISME 1912', cx + 45, cy);
+      ctx.fillText('PARIS ART...', cx + 45, cy + 15);
+    }
+
+    // 4) 초현실주의 드로잉 (녹아내리는 시계 + 낯선 사막 지평선)
+    function drawSurrealism() {
+      const distortion = parseInt(document.getElementById('param-distortion').value) / 100;
+      const dreamLevel = parseInt(document.getElementById('param-dream').value) / 100;
+
+      // 황량한 사막 지평선
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height * 0.55);
+      skyGrad.addColorStop(0, '#1e3a8a');
+      skyGrad.addColorStop(0.7, '#f59e0b');
+      skyGrad.addColorStop(1, '#fef08a');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height * 0.55);
+
+      const groundGrad = ctx.createLinearGradient(0, canvas.height * 0.55, 0, canvas.height);
+      groundGrad.addColorStop(0, '#78350f');
+      groundGrad.addColorStop(1, '#451a03');
+      ctx.fillStyle = groundGrad;
+      ctx.fillRect(0, canvas.height * 0.55, canvas.width, canvas.height * 0.45);
+
+      // 마우스 인터랙션으로 제어되는 녹아내리는 시계 위치
+      const clockX = canvas.width * 0.35 + (mouseX - canvas.width / 2) * 0.2;
+      const clockY = canvas.height * 0.45;
+
+      // 괴이한 마른 나뭇가지 또는 단상
+      ctx.fillStyle = '#261b14';
+      ctx.fillRect(clockX - 110, clockY - 10, 160, 140);
+
+      // 녹아내리는 시계 (살바도르 달리의 영감)
+      ctx.save();
+      ctx.translate(clockX, clockY);
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.strokeStyle = '#b45309';
+      ctx.lineWidth = 4;
+
+      ctx.beginPath();
+      ctx.moveTo(-70, -20);
+      // 베지어 곡선으로 흘러내리는 금속 외형 왜곡
+      const sag = 60 + distortion * 80;
+      ctx.bezierCurveTo(-40, -40, 20, -35, 50, -10);
+      ctx.bezierCurveTo(70, sag * 0.3, 40, sag, 10, sag);
+      ctx.bezierCurveTo(-20, sag * 0.9, -60, sag * 0.6, -70, -20);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // 시계판 숫자들 (늘어진 로마 숫자)
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 12px serif';
+      ctx.fillText('12', 0, -15);
+      ctx.fillText('3', 35, 20);
+      ctx.fillText('6', 5, sag - 15);
+      ctx.fillText('9', -45, 10);
+
+      // 꺾여 흘러내리는 시계 바늘
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(15, 25);
+      ctx.lineTo(25, sag * 0.5);
+      ctx.stroke();
+
+      ctx.restore();
+
+      // 데페이즈망: 사막 하늘에 떠 있는 거대한 녹색 사과 / 중절모 (마그리트 모티브)
+      if (dreamLevel > 0.2) {
+        const appleX = canvas.width * 0.78;
+        const appleY = canvas.height * 0.28 + Math.sin(Date.now() / 800) * 8;
+        const appleR = 38 * dreamLevel;
+
+        // 떠 있는 녹색 사과
+        ctx.fillStyle = '#65a30d';
+        ctx.beginPath();
+        ctx.arc(appleX, appleY, appleR, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#365314';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 사과 꼭지와 잎사귀
+        ctx.strokeStyle = '#78350f';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(appleX, appleY - appleR);
+        ctx.quadraticCurveTo(appleX + 10, appleY - appleR - 15, appleX + 12, appleY - appleR - 12);
+        ctx.stroke();
+
+        // 잎사귀
+        ctx.fillStyle = '#4d7c0f';
+        ctx.beginPath();
+        ctx.ellipse(appleX + 8, appleY - appleR - 10, 10, 5, Math.PI / 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 사과 그림자 (바닥에 이질적으로 드리움)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+        ctx.beginPath();
+        ctx.ellipse(appleX, canvas.height * 0.85, appleR * 1.2, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // 초기 렌더링
+    drawCanvas();
+
+
+    // ==========================================
+    // 2. 형성평가 퀴즈 및 Firebase Firestore 채점 저장 로직
+    // ==========================================
+    const quizAnswerKey = {
+      q1: {
+        type: 'single',
+        answer: 'B',
+        points: 15,
+        title: "Q1. 르네상스 선원근법",
+        explanation: "정답은 ②번 [선원근법(Linear Perspective)]입니다. 브루넬레스키가 체계화하고 알베르티가 이론화한 1점 선원근법은 소실점을 향해 수렴하는 투시선을 활용해 3차원 공간을 수학적으로 재현했습니다."
+      },
+      q2: {
+        type: 'single',
+        answer: 'C',
+        points: 15,
+        title: "Q2. 인상주의 빛과 색채",
+        explanation: "정답은 ③번입니다. 인상주의 화가들은 고정된 사물의 고유색을 부정하고, 태양광과 시간, 날씨에 따라 끊임없이 변화하는 ‘빛의 순간적 효과’를 시각화하는 데 집중했습니다."
+      },
+      q3: {
+        type: 'multiple',
+        answer: ['A', 'B', 'D'], // A, B, D 정답
+        points: 20,
+        title: "Q3. 입체주의(큐비즘) 특징",
+        explanation: "정답은 [A, B, D]입니다. 입체주의는 단일 시점을 파괴하고 대상을 해체하여 여러 각도에서 본 모습을 한 평면에 재구성했습니다. C는 인상주의의 특징이며, E는 극사실주의(하이퍼리얼리즘)의 설명입니다."
+      },
+      q4: {
+        type: 'multiple',
+        answer: ['A', 'B', 'C'], // A, B, C 정답
+        points: 20,
+        title: "Q4. 초현실주의 기법",
+        explanation: "정답은 [A, B, C]입니다. 자동기술법(오토마티슴), 데페이즈망(낯설게 하기), 막스 에른스트의 프로타주 및 데칼코마니는 모두 무의식과 우연성을 활용한 초현실주의 기법입니다. D는 르네상스의 특징입니다."
+      },
+      q5: {
+        type: 'subjective',
+        keywords: ['스푸마토', 'sfumato', '스푸마토기법'],
+        points: 15,
+        title: "Q5. 스푸마토 기법",
+        explanation: "모범 답안은 [스푸마토(Sfumato)]입니다. 이탈리아어로 '연기처럼 사라지다'라는 뜻의 sfumare에서 유래하였으며, 색과 색 사이의 경계선을 연기처럼 부드럽게 흐리는 다빈치의 대표 기법입니다."
+      },
+      q6: {
+        type: 'subjective',
+        keywords: ['데페이즈망', 'depaysement', '전치', '전치기법', '데페이즈망기법'],
+        points: 15,
+        title: "Q6. 데페이즈망",
+        explanation: "모범 답안은 [데페이즈망(Dépaysement)] 또는 [전치 기법]입니다. 사물을 일상적인 맥락에서 떼어내 낯선 장소에 배치하여 기이함과 충격을 주는 기법으로 마그리트의 작품에서 두드러집니다."
+      }
+    };
+
+    async function submitQuiz() {
+      // 1. 인적사항 확인
+      const studentGrade = document.getElementById('studentGrade').value.trim();
+      const studentName = document.getElementById('studentName').value.trim();
+
+      if (!studentName) {
+        alert("학습자 이름을 상단에 입력해주세요.");
+        document.getElementById('studentName').focus();
+        return;
+      }
+
+      // 2. 버튼 로딩 상태 전환
+      const submitBtn = document.getElementById('submitBtn');
+      const submitBtnIcon = document.getElementById('submitBtnIcon');
+      const submitBtnText = document.getElementById('submitBtnText');
+
+      submitBtn.disabled = true;
+      submitBtnIcon.className = "fa-solid fa-spinner fa-spin";
+      submitBtnText.textContent = "Firebase로 전송 중...";
+
+      let totalScore = 0;
+      const results = {};
+      const rawAnswers = {};
+
+      // Q1 채점 (단일 선택)
+      const q1Selected = document.querySelector('input[name="q1"]:checked');
+      const q1Val = q1Selected ? q1Selected.value : "";
+      rawAnswers.q1 = q1Val;
+      const q1Correct = (q1Val === quizAnswerKey.q1.answer);
+      const q1Score = q1Correct ? quizAnswerKey.q1.points : 0;
+      totalScore += q1Score;
+      results.q1 = { correct: q1Correct, score: q1Score, key: quizAnswerKey.q1 };
+
+      // Q2 채점 (단일 선택)
+      const q2Selected = document.querySelector('input[name="q2"]:checked');
+      const q2Val = q2Selected ? q2Selected.value : "";
+      rawAnswers.q2 = q2Val;
+      const q2Correct = (q2Val === quizAnswerKey.q2.answer);
+      const q2Score = q2Correct ? quizAnswerKey.q2.points : 0;
+      totalScore += q2Score;
+      results.q2 = { correct: q2Correct, score: q2Score, key: quizAnswerKey.q2 };
+
+      // Q3 채점 (다중 선택, 부분점수)
+      const q3Selected = Array.from(document.querySelectorAll('input[name="q3"]:checked')).map(el => el.value);
+      rawAnswers.q3 = q3Selected;
+      const q3CorrectAnswers = quizAnswerKey.q3.answer;
+      const q3IsExact = (q3Selected.length === q3CorrectAnswers.length) && q3Selected.every(v => q3CorrectAnswers.includes(v));
+      let q3Score = 0;
+      if (q3IsExact) {
+        q3Score = quizAnswerKey.q3.points;
+      } else {
+        let matched = q3Selected.filter(v => q3CorrectAnswers.includes(v)).length;
+        let incorrect = q3Selected.filter(v => !q3CorrectAnswers.includes(v)).length;
+        let net = Math.max(0, matched - incorrect);
+        q3Score = Math.round((net / q3CorrectAnswers.length) * quizAnswerKey.q3.points);
+      }
+      totalScore += q3Score;
+      results.q3 = { correct: q3IsExact, score: q3Score, key: quizAnswerKey.q3 };
+
+      // Q4 채점 (다중 선택, 부분점수)
+      const q4Selected = Array.from(document.querySelectorAll('input[name="q4"]:checked')).map(el => el.value);
+      rawAnswers.q4 = q4Selected;
+      const q4CorrectAnswers = quizAnswerKey.q4.answer;
+      const q4IsExact = (q4Selected.length === q4CorrectAnswers.length) && q4Selected.every(v => q4CorrectAnswers.includes(v));
+      let q4Score = 0;
+      if (q4IsExact) {
+        q4Score = quizAnswerKey.q4.points;
+      } else {
+        let matched = q4Selected.filter(v => q4CorrectAnswers.includes(v)).length;
+        let incorrect = q4Selected.filter(v => !q4CorrectAnswers.includes(v)).length;
+        let net = Math.max(0, matched - incorrect);
+        q4Score = Math.round((net / q4CorrectAnswers.length) * quizAnswerKey.q4.points);
+      }
+      totalScore += q4Score;
+      results.q4 = { correct: q4IsExact, score: q4Score, key: quizAnswerKey.q4 };
+
+      // Q5 채점 (주관식)
+      const q5Raw = document.getElementById('q5-input').value.trim();
+      rawAnswers.q5 = q5Raw;
+      const q5Processed = q5Raw.toLowerCase().replace(/\s+/g, '');
+      const q5Correct = quizAnswerKey.q5.keywords.some(kw => q5Processed.includes(kw.replace(/\s+/g, '')));
+      const q5Score = q5Correct ? quizAnswerKey.q5.points : 0;
+      totalScore += q5Score;
+      results.q5 = { correct: q5Correct, score: q5Score, key: quizAnswerKey.q5 };
+
+      // Q6 채점 (주관식)
+      const q6Raw = document.getElementById('q6-input').value.trim();
+      rawAnswers.q6 = q6Raw;
+      const q6Processed = q6Raw.toLowerCase().replace(/\s+/g, '');
+      const q6Correct = quizAnswerKey.q6.keywords.some(kw => q6Processed.includes(kw.replace(/\s+/g, '')));
+      const q6Score = q6Correct ? quizAnswerKey.q6.points : 0;
+      totalScore += q6Score;
+      results.q6 = { correct: q6Correct, score: q6Score, key: quizAnswerKey.q6 };
+
+      // 화면에 시각적 오답/정답 피드백 표시
+      applyVisualFeedback(results);
+
+      // 3. Firestore 데이터베이스에 학습 데이터 저장
+      let docId = null;
+      let firebaseError = null;
+
+      const submissionPayload = {
+        studentInfo: {
+          grade: studentGrade || "미기재",
+          name: studentName
+        },
+        score: totalScore,
+        maxScore: 100,
+        answers: rawAnswers,
+        details: {
+          q1_score: q1Score,
+          q2_score: q2Score,
+          q3_score: q3Score,
+          q4_score: q4Score,
+          q5_score: q5Score,
+          q6_score: q6Score
+        },
+        submittedAt: new Date().toISOString(),
+        userAgent: navigator.userAgent
+      };
+
+      // 만약 네트워크나 보안 규칙 문제에 대비해 브라우저 로컬스토리지에도 백업 저장
+      try {
+        const localSubmissions = JSON.parse(localStorage.getItem('art_submissions') || '[]');
+        localSubmissions.push(submissionPayload);
+        localStorage.setItem('art_submissions', JSON.stringify(localSubmissions));
+      } catch (e) {
+        console.warn("로컬 백업 저장 실패:", e);
+      }
+
+      if (db) {
+        try {
+          const docRef = await addDoc(collection(db, "art_history_submissions"), {
+            ...submissionPayload,
+            submittedAt: serverTimestamp() // Firestore 타임스탬프 적용
+          });
+          docId = docRef.id;
+          console.log("Firestore 저장 성공 Document ID:", docId);
+        } catch (err) {
+          console.error("Firestore 저장 실패:", err);
+          firebaseError = err;
+        }
+      } else {
+        firebaseError = new Error("Firestore 인스턴스가 초기화되지 않았습니다.");
+      }
+
+      // 4. 모달 표시 및 Firebase 상태 업데이트
+      showResultModal(totalScore, results, docId, firebaseError);
+
+      // 버튼 복구
+      submitBtn.disabled = false;
+      submitBtnIcon.className = "fa-solid fa-paper-plane";
+      submitBtnText.textContent = "답안 재제출하기";
+    }
+
+    function applyVisualFeedback(results) {
+      Object.keys(results).forEach(qid => {
+        const item = results[qid];
+        const container = document.getElementById(`item-${qid}`);
+        const feedbackBox = container.querySelector('.feedback-box');
+
+        container.classList.remove('border-slate-200', 'border-emerald-300', 'bg-emerald-50/20', 'border-rose-300', 'bg-rose-50/20');
+        feedbackBox.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-900', 'border-emerald-200', 'bg-rose-50', 'text-rose-900', 'border-rose-200', 'bg-amber-50', 'text-amber-900', 'border-amber-200');
+
+        let statusBadge = '';
+        if (item.correct) {
+          container.classList.add('border-emerald-400', 'bg-emerald-50/20');
+          feedbackBox.classList.add('bg-emerald-50', 'text-emerald-900', 'border', 'border-emerald-200');
+          statusBadge = `<span class="inline-flex items-center gap-1 font-bold text-emerald-700 mb-1"><i class="fa-solid fa-circle-check"></i> 정답 (${item.score}/${item.key.points}점)</span>`;
+        } else if (item.score > 0) {
+          container.classList.add('border-amber-400', 'bg-amber-50/20');
+          feedbackBox.classList.add('bg-amber-50', 'text-amber-900', 'border', 'border-amber-200');
+          statusBadge = `<span class="inline-flex items-center gap-1 font-bold text-amber-700 mb-1"><i class="fa-solid fa-triangle-exclamation"></i> 부분 점수 (${item.score}/${item.key.points}점)</span>`;
+        } else {
+          container.classList.add('border-rose-300', 'bg-rose-50/20');
+          feedbackBox.classList.add('bg-rose-50', 'text-rose-900', 'border', 'border-rose-200');
+          statusBadge = `<span class="inline-flex items-center gap-1 font-bold text-rose-700 mb-1"><i class="fa-solid fa-circle-xmark"></i> 오답 (${item.score}/${item.key.points}점)</span>`;
+        }
+
+        feedbackBox.innerHTML = `
+          ${statusBadge}
+          <p class="mt-1 font-medium">${item.key.explanation}</p>
+        `;
+      });
+    }
+
+    function showResultModal(totalScore, results, docId, firebaseError) {
+      const studentName = document.getElementById('studentName').value.trim() || '미술 탐구자';
+      const studentGrade = document.getElementById('studentGrade').value.trim();
+      const studentInfo = studentGrade ? `${studentGrade} ${studentName}` : studentName;
+
+      document.getElementById('resultStudent').textContent = `학습자: ${studentInfo}`;
+      document.getElementById('resultScoreText').textContent = `최종 점수: ${totalScore}점 / 100점`;
+
+      let comment = '';
+      const iconBox = document.getElementById('resultIcon');
+      if (totalScore >= 90) {
+        comment = "탁월한 미술사적 안목을 지니셨네요! 각 사조의 철학과 조형 언어를 깊이 있게 꿰뚫고 있습니다.";
+        iconBox.className = "w-16 h-16 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl mb-4";
+        iconBox.innerHTML = `<i class="fa-solid fa-trophy"></i>`;
+      } else if (totalScore >= 70) {
+        comment = "우수한 성취도입니다! 르네상스부터 초현실주의까지 핵심 개념을 잘 이해하고 있습니다.";
+        iconBox.className = "w-16 h-16 mx-auto rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-2xl mb-4";
+        iconBox.innerHTML = `<i class="fa-solid fa-medal"></i>`;
+      } else {
+        comment = "아쉬운 문항이 있습니다. 상단의 인터랙티브 시뮬레이터를 다시 조작해보며 개념을 복습해보세요!";
+        iconBox.className = "w-16 h-16 mx-auto rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-2xl mb-4";
+        iconBox.innerHTML = `<i class="fa-solid fa-book-open"></i>`;
+      }
+      document.getElementById('resultComment').textContent = comment;
+
+      // Firebase 전송 상태 배너 업데이트
+      const statusBanner = document.getElementById('firebaseStatusBanner');
+      const statusText = document.getElementById('firebaseStatusText');
+
+      if (docId) {
+        statusBanner.className = "mt-4 p-3 rounded-xl text-xs flex flex-col items-center justify-center gap-1 border bg-emerald-50 border-emerald-200 text-emerald-800";
+        statusBanner.innerHTML = `
+          <div class="flex items-center gap-1.5 font-bold">
+            <i class="fa-solid fa-cloud-check text-emerald-600 text-sm"></i>
+            <span>Firebase Firestore 전송 완료!</span>
+          </div>
+          <span class="text-[11px] font-mono text-emerald-700 break-all">Doc ID: ${docId}</span>
+        `;
+      } else if (firebaseError) {
+        const isPermissionError = firebaseError.code === 'permission-denied' || firebaseError.message.includes('permissions');
+        statusBanner.className = "mt-4 p-3 rounded-xl text-xs flex flex-col items-start gap-1 border bg-rose-50 border-rose-200 text-rose-800 text-left";
+        statusBanner.innerHTML = `
+          <div class="flex items-center gap-1.5 font-bold text-rose-700">
+            <i class="fa-solid fa-circle-exclamation text-rose-600"></i>
+            <span>Firebase 저장 실패 (권한 부족: Permission Denied)</span>
+          </div>
+          <p class="text-[11px] text-rose-600 mt-1 leading-relaxed">
+            ${isPermissionError 
+              ? "👉 <strong>Firebase 콘솔 > Firestore Database > 규칙(Rules)</strong>에서 쓰기 권한(<code>allow write: if true;</code>)을 허용해주셔야 클라이언트에서 데이터가 저장됩니다." 
+              : firebaseError.message}
+          </p>
+          <span class="text-[10px] text-slate-500 mt-1">※ 학생 답안 및 채점 결과는 브라우저 로컬 백업에 안전하게 보관되었습니다.</span>
+        `;
+      }
+
+      // 문항별 점수 반영
+      Object.keys(results).forEach(qid => {
+        const item = results[qid];
+        const el = document.getElementById(`score-${qid}`);
+        if (el) {
+          el.textContent = `${item.score} / ${item.key.points}점`;
+          el.className = item.score === item.key.points ? 'font-bold text-emerald-600' : (item.score > 0 ? 'font-bold text-amber-600' : 'font-bold text-rose-600');
+        }
+      });
+
+      document.getElementById('resultModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('resultModal').classList.add('hidden');
+      document.getElementById('quizForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetQuiz() {
+      document.getElementById('quizForm').reset();
+      document.getElementById('q5-input').value = '';
+      document.getElementById('q6-input').value = '';
+
+      ['q1', 'q2', 'q3', 'q4', 'q5', 'q6'].forEach(qid => {
+        const container = document.getElementById(`item-${qid}`);
+        const feedbackBox = container.querySelector('.feedback-box');
+        container.className = 'quiz-item p-5 rounded-xl border border-slate-200 hover:border-slate-300 transition-colors bg-white';
+        feedbackBox.classList.add('hidden');
+        feedbackBox.innerHTML = '';
+      });
+
+      const statusBanner = document.getElementById('firebaseStatusBanner');
+      statusBanner.className = "mt-4 p-3 rounded-xl text-xs flex items-center justify-center gap-2 border bg-slate-50 border-slate-200 text-slate-700";
+      statusBanner.innerHTML = `
+        <i class="fa-solid fa-database text-indigo-500"></i>
+        <span id="firebaseStatusText">데이터베이스 연동 준비 완료</span>
+      `;
+
+      document.getElementById('quizForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // HTML inline onclick 이벤트 핸들러 바인딩
+    window.changeMovement = changeMovement;
+    window.submitQuiz = submitQuiz;
+    window.resetQuiz = resetQuiz;
+    window.closeModal = closeModal;
+  </script>
+</body>
+</html>
