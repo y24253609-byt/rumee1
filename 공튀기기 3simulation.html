@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>직사각형 상자 속 튕기는 공 심뮬레이션</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Pretendard', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- 메인 컨테이너 -->
+    <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+        
+        <!-- 캔버스 영역 (왼쪽/상단) -->
+        <div class="relative flex-1 bg-slate-950 p-6 flex flex-col items-center justify-center min-h-[350px]">
+            <!-- FPS 및 통계 정보 표시 -->
+            <div class="absolute top-8 left-8 bg-slate-900/80 backdrop-blur border border-slate-800 text-xs px-3 py-1.5 rounded-full flex gap-3 text-slate-300 shadow">
+                <span>바운스 횟수: <strong id="bounceCount" class="text-indigo-400">0</strong></span>
+                <span>속도: <strong id="speedDisplay" class="text-emerald-400">5</strong> px/f</span>
+            </div>
+
+            <!-- 직사각형 배경 (캔버스) -->
+            <div class="relative rounded-xl overflow-hidden border-2 border-indigo-500/30 shadow-[0_0_25px_rgba(99,102,241,0.15)] w-full aspect-video max-w-[600px] max-h-[380px]">
+                <canvas id="simCanvas" class="w-full h-full block bg-slate-950"></canvas>
+            </div>
+        </div>
+
+        <!-- 컨트롤 패널 (오른쪽/하단) -->
+        <div class="w-full md:w-80 bg-slate-900/90 border-t md:border-t-0 md:border-l border-slate-800 p-6 flex flex-col justify-between">
+            <div>
+                <h2 class="text-xl font-bold mb-1 text-slate-100 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block animate-pulse"></span>
+                    시뮬레이션 설정
+                </h2>
+                <p class="text-xs text-slate-400 mb-6">공의 크기, 속도 및 시각 효과를 실시간으로 조정하세요.</p>
+
+                <div class="space-y-5">
+                    <!-- 시작/정지 & 색상 변경 버튼 -->
+                    <div class="flex flex-col gap-2">
+                        <div class="flex gap-2">
+                            <button id="toggleBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-4 rounded-xl transition-all shadow-lg shadow-indigo-600/20 active:scale-95 flex items-center justify-center gap-2">
+                                <svg id="playIcon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <svg id="pauseIcon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                                <span id="toggleText">일시정지</span>
+                            </button>
+                            <button id="resetBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2.5 rounded-xl transition-all active:scale-95 border border-slate-700" title="리셋">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            </button>
+                        </div>
+                        
+                        <!-- 공 색상 무작위 변경 버튼 추가 -->
+                        <button id="randomColorBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-2.5 px-4 rounded-xl border border-slate-700 transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+                            <span>🎲 공 색상 변경하기</span>
+                        </button>
+                    </div>
+
+                    <hr class="border-slate-800" />
+
+                    <!-- 속도 조절 슬라이더 -->
+                    <div>
+                        <div class="flex justify-between text-sm font-medium mb-1">
+                            <label for="speedRange" class="text-slate-300">이동 속도</label>
+                            <span id="speedVal" class="text-indigo-400 font-semibold">5</span>
+                        </div>
+                        <input type="range" id="speedRange" min="1" max="20" value="5" class="w-full accent-indigo-500 bg-slate-800 h-2 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- 크기 조절 슬라이더 -->
+                    <div>
+                        <div class="flex justify-between text-sm font-medium mb-1">
+                            <label for="sizeRange" class="text-slate-300">공 크기 (반지름)</label>
+                            <span id="sizeVal" class="text-indigo-400 font-semibold">16px</span>
+                        </div>
+                        <input type="range" id="sizeRange" min="8" max="40" value="16" class="w-full accent-indigo-500 bg-slate-800 h-2 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- 색상 변경 버튼 -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">공 색상 변경</label>
+                        <button id="randomColorBtn" class="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 hover:from-pink-600 hover:via-purple-600 hover:to-indigo-600 text-white font-semibold py-2.5 px-4 rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+                            랜덤 색상 변경
+                        </button>
+                    </div>
+
+                    <!-- 잔상 효과 토글 -->
+                    <div class="flex items-center justify-between pt-2">
+                        <span class="text-sm font-medium text-slate-300">잔상 효과 (Trail)</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="trailToggle" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 하단 안내문 -->
+            <div class="mt-6 text-xs text-slate-500 border-t border-slate-800/80 pt-4">
+                💡 공이 상자 벽면 상/하/좌/우에 닿을 때 정확한 튕김 물리가 적용됩니다.
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript 시뮬레이션 로직 -->
+    <script>
+        // DOM 요소 획득
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const toggleBtn = document.getElementById('toggleBtn');
+        const toggleText = document.getElementById('toggleText');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const resetBtn = document.getElementById('resetBtn');
+        const randomColorBtn = document.getElementById('randomColorBtn');
+
+        const speedRange = document.getElementById('speedRange');
+        const speedVal = document.getElementById('speedVal');
+        const speedDisplay = document.getElementById('speedDisplay');
+
+        const sizeRange = document.getElementById('sizeRange');
+        const sizeVal = document.getElementById('sizeVal');
+
+        const trailToggle = document.getElementById('trailToggle');
+        const bounceCountEl = document.getElementById('bounceCount');
+
+        // 상태 변수
+        let isRunning = true;
+        let bounceCount = 0;
+
+        // 공 객체 설정
+        const ball = {
+            x: 200,
+            y: 150,
+            vx: 3,
+            vy: 2.5,
+            radius: 16,
+            color: '#6366f1',
+            baseSpeed: 5
+        };
+
+        // 파티클 (벽 충돌 이펙트용)
+        let particles = [];
+
+        // 캔버스 크기 맞춤 및 초기화
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth || 600;
+            canvas.height = container.clientHeight || 350;
+
+            // 공이 상자 밖으로 벗어나지 않도록 좌표 재조정
+            ball.x = Math.max(ball.radius, Math.min(canvas.width - ball.radius, ball.x));
+            ball.y = Math.max(ball.radius, Math.min(canvas.height - ball.radius, ball.y));
+        }
+
+        // 충돌 시 튀는 파티클 생성 함수
+        function createImpactParticles(x, y, color) {
+            for (let i = 0; i < 8; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 3 + 1;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    radius: Math.random() * 3 + 1,
+                    alpha: 1,
+                    color: color
+                });
+            }
+        }
+
+        // 파티클 업데이트 및 그리기
+        function handleParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 0.03;
+
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                } else {
+                    ctx.save();
+                    ctx.globalAlpha = p.alpha;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+        }
+
+        // 방향 벡터 업데이트 (속도 조절 반영)
+        function updateVelocityMagnitude() {
+            const currentSpeed = Math.hypot(ball.vx, ball.vy);
+            if (currentSpeed === 0) {
+                ball.vx = ball.baseSpeed;
+                ball.vy = ball.baseSpeed;
+                return;
+            }
+            const factor = ball.baseSpeed / currentSpeed;
+            ball.vx *= factor;
+            ball.vy *= factor;
+        }
+
+        // 위치 및 물리 업데이트
+        function update() {
+            if (!isRunning) return;
+
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+
+            let hit = false;
+
+            // 좌우 벽 부딪힘 검사
+            if (ball.x + ball.radius >= canvas.width) {
+                ball.x = canvas.width - ball.radius;
+                ball.vx *= -1;
+                createImpactParticles(canvas.width, ball.y, ball.color);
+                hit = true;
+            } else if (ball.x - ball.radius <= 0) {
+                ball.x = ball.radius;
+                ball.vx *= -1;
+                createImpactParticles(0, ball.y, ball.color);
+                hit = true;
+            }
+
+            // 상하 벽 부딪힘 검사
+            if (ball.y + ball.radius >= canvas.height) {
+                ball.y = canvas.height - ball.radius;
+                ball.vy *= -1;
+                createImpactParticles(ball.x, canvas.height, ball.color);
+                hit = true;
+            } else if (ball.y - ball.radius <= 0) {
+                ball.y = ball.radius;
+                ball.vy *= -1;
+                createImpactParticles(ball.x, 0, ball.color);
+                hit = true;
+            }
+
+            if (hit) {
+                bounceCount++;
+                bounceCountEl.textContent = bounceCount.toLocaleString();
+            }
+        }
+
+        // 렌더링 함수
+        function draw() {
+            // 배경 잔상 처리
+            if (trailToggle.checked) {
+                ctx.fillStyle = 'rgba(2, 6, 23, 0.25)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // 파티클 그리기
+            handleParticles();
+
+            // 공 빛나는 효과
+            ctx.save();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = ball.color;
+
+            // 공 본체 그리기
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = ball.color;
+            ctx.fill();
+            ctx.restore();
+
+            // 입체 하이라이트
+            ctx.beginPath();
+            ctx.arc(ball.x - ball.radius * 0.3, ball.y - ball.radius * 0.3, ball.radius * 0.3, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.fill();
+        }
+
+        // 메인 애니메이션 루프
+        function animate() {
+            update();
+            draw();
+            requestAnimationFrame(animate);
+        }
+
+        // 선명한 무작위 HSL 색상 생성 함수
+        function getRandomVibrantColor() {
+            const hue = Math.floor(Math.random() * 360);
+            return `hsl(${hue}, 85%, 60%)`;
+        }
+
+        // 토글 버튼 (시작/일시정지)
+        function toggleSimulation() {
+            isRunning = !isRunning;
+            if (isRunning) {
+                toggleText.textContent = "일시정지";
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+                toggleBtn.classList.replace('bg-emerald-600', 'bg-indigo-600');
+                toggleBtn.classList.replace('hover:bg-emerald-500', 'hover:bg-indigo-500');
+            } else {
+                toggleText.textContent = "재생하기";
+                pauseIcon.classList.add('hidden');
+                playIcon.classList.remove('hidden');
+                toggleBtn.classList.replace('bg-indigo-600', 'bg-emerald-600');
+                toggleBtn.classList.replace('hover:bg-indigo-500', 'hover:bg-emerald-500');
+            }
+        }
+
+        // 리셋 함수
+        function resetSimulation() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            bounceCount = 0;
+            bounceCountEl.textContent = "0";
+
+            const angle = Math.random() * Math.PI * 2;
+            ball.vx = Math.cos(angle) * ball.baseSpeed;
+            ball.vy = Math.sin(angle) * ball.baseSpeed;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // 이벤트 리스너 등록
+        toggleBtn.addEventListener('click', toggleSimulation);
+        resetBtn.addEventListener('click', resetSimulation);
+        
+        // 버튼 클릭 시 색상 무작위 변경
+        randomColorBtn.addEventListener('click', () => {
+            ball.color = getRandomVibrantColor();
+        });
+
+        // 속도 조절
+        speedRange.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value, 10);
+            ball.baseSpeed = val;
+            speedVal.textContent = val;
+            speedDisplay.textContent = val;
+            updateVelocityMagnitude();
+        });
+
+        // 크기 조절
+        sizeRange.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value, 10);
+            ball.radius = val;
+            sizeVal.textContent = `${val}px`;
+        });
+
+        // 윈도우 크기 변경 대응
+        window.addEventListener('resize', resizeCanvas);
+
+        // 초기화 및 애니메이션 시작
+        window.onload = function() {
+            resizeCanvas();
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+
+            const angle = Math.PI / 4;
+            ball.vx = Math.cos(angle) * ball.baseSpeed;
+            ball.vy = Math.sin(angle) * ball.baseSpeed;
+
+            animate();
+        };
+    </script>
+</body>
+</html>
